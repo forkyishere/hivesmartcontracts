@@ -836,15 +836,14 @@ actions.buy = async (payload) => {
     if (api.assert(token
       && api.BigNumber(price).gt(0)
       && countDecimals(price) <= HIVE_PEGGED_SYMBOL_PRESICION
-      && countDecimals(quantity) <= token.precision
-      && api.BigNumber(price).multipliedBy(quantity).gte('0.00000001'), 'invalid params')) {
+      && countDecimals(quantity) <= token.precision, 'invalid params')) {
       // initiate a transfer from sender to contract balance
 
-      const nbTokensToLock = api.BigNumber(price)
-        .multipliedBy(quantity);
-      //  .toFixed(HIVE_PEGGED_SYMBOL_PRESICION);
+      const minNbTokensToFillOrder = api.BigNumber(price)
+        .multipliedBy(quantity)
+      const nbTokensToFillOrder = minNbTokensToFillOrder.toFixed(HIVE_PEGGED_SYMBOL_PRESICION);
 
-      //if (api.assert(api.BigNumber(nbTokensToLock).gte('0.00000001'), 'order cannot be placed as it cannot be filled')) {
+      if (api.assert(minNbTokensToFillOrder.gte('0.00000001'), 'order cannot be placed as it cannot be filled')) {
         // lock HIVE_PEGGED_SYMBOL tokens
         const res = await api.executeSmartContract('tokens', 'transferToContract', { from: finalAccount, symbol: HIVE_PEGGED_SYMBOL, quantity: nbTokensToLock, to: CONTRACT_NAME });
 
@@ -873,7 +872,7 @@ actions.buy = async (payload) => {
 
           await findMatchingSellOrders(orderInDb, token.precision);
         }
-      //}
+      }
     }
   }
 };
@@ -911,14 +910,13 @@ actions.sell = async (payload) => {
     if (api.assert(token
       && api.BigNumber(price).gt(0)
       && countDecimals(price) <= HIVE_PEGGED_SYMBOL_PRESICION
-      && countDecimals(quantity) <= token.precision
-      && api.BigNumber(price).multipliedBy(quantity).gte('0.00000001'), 'invalid params')) {
-      
-      const nbTokensToFillOrder = api.BigNumber(price)
-        .multipliedBy(quantity)
-      //  .toFixed(HIVE_PEGGED_SYMBOL_PRESICION);
+      && countDecimals(quantity) <= token.precision, 'invalid params')) {
 
-      //if (api.assert(api.BigNumber(nbTokensToFillOrder).gte('0.00000001'), 'order cannot be placed as it cannot be filled')) {
+      const minNbTokensToFillOrder = api.BigNumber(price)
+        .multipliedBy(quantity)
+      const nbTokensToFillOrder = minNbTokensToFillOrder.toFixed(HIVE_PEGGED_SYMBOL_PRESICION);
+
+      if (api.assert(minNbTokensToFillOrder.gte('0.00000001'), 'order cannot be placed as it cannot be filled')) {
         // initiate a transfer from sender to contract balance
         // lock symbol tokens
         const res = await api.executeSmartContract('tokens', 'transferToContract', { from: finalAccount, symbol, quantity, to: CONTRACT_NAME });
@@ -947,7 +945,7 @@ actions.sell = async (payload) => {
 
           await findMatchingBuyOrders(orderInDb, token.precision);
         }
-      //}
+      }
     }
   }
 };
