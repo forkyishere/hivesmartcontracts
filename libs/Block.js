@@ -87,6 +87,18 @@ class Block {
       this.transactions = [];
     }
 
+    // Fix the daylight change hour movement on the primary node (happened in Finland timezone)
+    if (this.refHiveBlockNumber >= 48091325 && this.refHiveBlockNumber < 48102349) {
+      process.env.TZ = 'Europe/Helsinki';
+      console.log('Temporary change of timezone to:', process.env.TZ);
+      console.log('Current time:', new Date().toString());
+    }
+    if (this.refHiveBlockNumber === 48102349) {
+      process.env.TZ = 'Etc/UTC';
+      console.log('Revert timezone back to:', process.env.TZ);
+      console.log('Current time:', new Date().toString());
+    }
+    
     // To keep in sync with primary node history after hack
     if (this.refHiveBlockNumber === 50352631) {
       const tokenBalances = database.database.collection('tokens_balances');
